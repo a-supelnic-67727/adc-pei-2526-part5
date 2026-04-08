@@ -15,18 +15,23 @@ public class JWTConfig {
         ES256, ES384, ES512
     }
 
-    // === CONFIGURATION ===
+    // === CONFIGURATION === real-word deployments define configs via env variables
     public static final AlgorithmType ALGORITHM = AlgorithmType.HS256;
     public static final String HMAC_SECRET = "change-me-to-a-secure-random-string";
     public static final long EXPIRATION_TIME = 1000 * 60 * 60 * 2; // 2 hours
 
-    // === KEYS ===
+    // === KEYS === real-world deployments store keys in a secure vault
     private static PrivateKey privateKey;
     private static PublicKey publicKey;
 
     static {
         try {
             switch (ALGORITHM) {
+                // HMAC needs no key generation
+                case HS256, HS384, HS512 -> {
+                    // No-op
+                }
+
                 case RS256, RS384, RS512 -> {
                     int keySize = switch (ALGORITHM) {
                         case RS256 -> 2048;
@@ -34,6 +39,8 @@ public class JWTConfig {
                         case RS512 -> 4096;
                         default -> throw new IllegalStateException("Unexpected RSA algorithm");
                     };
+                    // Key pair generation per deployment adds an extra overhead due to crypto
+                    // An alternative is to store key pairs in the database instead of in-memory
                     KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
                     kpg.initialize(keySize);
                     KeyPair kp = kpg.generateKeyPair();
@@ -48,16 +55,13 @@ public class JWTConfig {
                         case ES512 -> "secp521r1";
                         default -> throw new IllegalStateException("Unexpected EC algorithm");
                     };
+                    // Key pair generation per deployment adds an extra overhead due to crypto
+                    // An alternative is to store key pairs in the database instead of in-memory
                     KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC");
                     kpg.initialize(new ECGenParameterSpec(curve));
                     KeyPair kp = kpg.generateKeyPair();
                     privateKey = kp.getPrivate();
                     publicKey = kp.getPublic();
-                }
-
-                // HMAC needs no key generation
-                case HS256, HS384, HS512 -> {
-                    // No-op
                 }
             }
         } catch (Exception e) {
