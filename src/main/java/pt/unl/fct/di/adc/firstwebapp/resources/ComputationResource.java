@@ -75,7 +75,7 @@ public class ComputationResource {
     @Path("/backgroundCompute")
     public Response triggerBackgroundComputeTask() throws IOException {
 		// TODO: put here your project id (real-world deployments define critical configs via env variables or secret vaults..)
-        String projectId = "vital-reef-488417-k2";
+        String projectId = "your-project-id";
 		// TODO: create a task queue through the Google Cloud Web Console (Cloud Tasks)
         String queueName = "Default";
         String location = "europe-west6";
